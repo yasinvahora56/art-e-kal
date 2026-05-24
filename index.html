@@ -1,0 +1,600 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blog Admin — Publish Article</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --surface-hover: #f1f5f9;
+      --border: #e2e8f0;
+      --border-focus: #3b82f6;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --danger: #ef4444;
+      --danger-light: #fee2e2;
+      --success: #22c55e;
+      --success-light: #f0fdf4;
+      --radius: 8px;
+      --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+      --font: 'Inter', -apple-system, sans-serif;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.5;
+      padding-bottom: 60px;
+    }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: var(--shadow);
+    }
+    .logo { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 18px; }
+    .logo span { font-size: 20px; }
+
+    #login-screen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: calc(100vh - 120px);
+      padding: 24px;
+    }
+    .login-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    }
+    .login-card h2 { font-size: 22px; margin-bottom: 8px; font-weight: 700; }
+    .login-card p { font-size: 14px; color: var(--text-muted); margin-bottom: 24px; }
+
+    #admin-panel { display: none; max-width: 800px; margin: 32px auto; padding: 0 20px; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      box-shadow: var(--shadow);
+      margin-bottom: 24px;
+    }
+    .card h2 { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+    .card .subtitle { font-size: 14px; color: var(--text-muted); margin-bottom: 24px; }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full { grid-column: 1 / -1; }
+    label { font-size: 13px; font-weight: 600; color: var(--text); }
+
+    input[type="text"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--text);
+      background: var(--surface);
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+    textarea { resize: vertical; min-height: 120px; }
+
+    /* Drag & Drop Area */
+    .img-upload-area {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 32px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.15s, background-color 0.15s;
+    }
+    .img-upload-area:hover { border-color: var(--primary); background-color: var(--surface-hover); }
+    .img-upload-area input { display: none; }
+    .upload-icon { font-size: 36px; margin-bottom: 8px; }
+    .upload-title { font-size: 14px; font-weight: 600; }
+    .upload-desc { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+    /* Previews Grid */
+    .previews-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .preview-card {
+      position: relative;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      aspect-ratio: 1;
+      background: var(--surface-hover);
+    }
+    .preview-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .preview-card .delete-btn {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      background: rgba(15, 23, 42, 0.7);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 14px;
+      line-height: 1;
+      transition: background 0.15s;
+    }
+    .preview-card .delete-btn:hover {
+      background: var(--danger);
+    }
+    .preview-card .size-badge {
+      position: absolute;
+      bottom: 4px;
+      left: 4px;
+      background: rgba(15, 23, 42, 0.75);
+      color: #fff;
+      font-size: 9px;
+      padding: 2px 5px;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 10px 20px; border-radius: 6px;
+      font-size: 14px; font-weight: 600; font-family: inherit;
+      cursor: pointer; border: none; transition: all 0.15s;
+    }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-secondary {
+      background: var(--surface); color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { background: var(--surface-hover); }
+
+    /* Alert */
+    .alert {
+      padding: 12px 16px; border-radius: 6px;
+      font-size: 14px; margin-bottom: 20px;
+      display: none;
+    }
+    .alert.success { background: var(--success-light); border: 1px solid var(--success); color: var(--success); display: block; }
+    .alert.error { background: var(--danger-light); border: 1px solid var(--danger); color: var(--danger); display: block; }
+
+    .info-box {
+      background: #eff6ff; border: 1px solid #bfdbfe;
+      border-radius: var(--radius); padding: 16px;
+      font-size: 13.5px; color: #1d4ed8; line-height: 1.6;
+      margin-top: 16px;
+    }
+
+    .code-block {
+      background: #0f172a; color: #f8fafc;
+      border-radius: 6px; padding: 16px;
+      font-size: 12px; font-family: monospace;
+      overflow-x: auto; white-space: pre;
+      max-height: 250px; overflow-y: auto;
+      margin-top: 12px;
+      border: 1px solid var(--border);
+    }
+
+    /* Setup Guide List */
+    ol { padding-left: 20px; margin-top: 10px; }
+    ol li { margin-bottom: 8px; font-size: 13.5px; color: var(--text-muted); }
+
+    @media (max-width: 600px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .card { padding: 20px; }
+      body { padding-bottom: 40px; }
+    }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <div class="logo">
+    <span>✍️</span>
+    <span id="blog-title-header">Blog Admin</span>
+  </div>
+  <div>
+    <button id="logout-btn" class="btn btn-secondary" onclick="logout()" style="display:none; padding:6px 12px; font-size:13px;">Logout</button>
+  </div>
+</header>
+
+<!-- Login Screen -->
+<div id="login-screen">
+  <div class="login-card">
+    <h2>🔐 Admin Login</h2>
+    <p>Please enter the admin password to publish blog posts.</p>
+    <div class="form-group" style="margin-bottom:20px;">
+      <label>Password</label>
+      <input type="password" id="pwd-input" placeholder="Enter password..." onkeydown="if(event.key==='Enter') doLogin()" />
+    </div>
+    <div id="login-error" style="color:var(--danger); font-size:13px; margin-bottom:12px; display:none; font-weight: 500;">
+      ❌ Incorrect password. Please try again.
+    </div>
+    <button class="btn btn-primary" onclick="doLogin()" style="width:100%;">Login</button>
+  </div>
+</div>
+
+<!-- Admin Panel -->
+<div id="admin-panel">
+
+  <div class="card">
+    <h2>✍️ Write & Publish Blog</h2>
+    <p class="subtitle">Write your blog content and upload multiple images. Images are automatically cropped and resized to exactly 1920x1920 px before upload.</p>
+
+    <div id="submit-alert" class="alert"></div>
+
+    <form id="blog-form" onsubmit="submitBlog(event)">
+      <div class="form-grid">
+
+        <div class="form-group full">
+          <label>Blog Title *</label>
+          <input type="text" id="f-title" placeholder="e.g., 10 Tips for Healthier Lifestyle" required />
+        </div>
+
+        <div class="form-group">
+          <label>Category *</label>
+          <select id="f-category" required>
+            <option value="General">General</option>
+            <option value="Technology">Technology</option>
+            <option value="Lifestyle">Lifestyle</option>
+            <option value="Travel">Travel</option>
+            <option value="Food & Cooking">Food & Cooking</option>
+            <option value="Business & Finance">Business & Finance</option>
+            <option value="Health & Fitness">Health & Fitness</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Author Name *</label>
+          <input type="text" id="f-author" placeholder="e.g., Jane Doe" required />
+        </div>
+
+        <div class="form-group full">
+          <label>Summary / Excerpt *</label>
+          <textarea id="f-summary" placeholder="Write a short summary (1-2 sentences) of this blog post..." required style="min-height: 60px;"></textarea>
+        </div>
+
+        <div class="form-group full">
+          <label>Blog Content *</label>
+          <textarea id="f-content" placeholder="Write your full article here. To start a new paragraph, press Enter twice to create a double line break." required style="min-height: 250px;"></textarea>
+        </div>
+
+        <div class="form-group full">
+          <label>Blog Images (Resized to 1920x1920 px) *</label>
+          <div class="img-upload-area" onclick="document.getElementById('f-images').click()">
+            <input type="file" id="f-images" accept="image/*" multiple onchange="handleImageSelection(event)" />
+            <div class="upload-icon">📷</div>
+            <div class="upload-title">Click to select one or multiple images</div>
+            <div class="upload-desc">Images will automatically crop and resize to exactly 1920x1920 pixels</div>
+          </div>
+          
+          <div class="previews-grid" id="previews-container"></div>
+        </div>
+
+      </div>
+
+      <hr style="border: none; border-top: 1px solid var(--border); margin: 24px 0;" />
+
+      <div style="display:flex; gap:12px; justify-content:flex-end; flex-wrap:wrap;">
+        <button type="button" class="btn btn-secondary" onclick="resetForm()">Reset Form</button>
+        <button type="submit" class="btn btn-primary" id="submit-btn">
+          <span id="submit-spinner" style="display:none; margin-right: 4px;">⏳</span>
+          Publish Blog
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Setup instructions -->
+  <div class="card">
+    <h2>🔧 Google Apps Script Update Instructions</h2>
+    <p class="subtitle">Since we are moving from single product to multiple blog images, please update your Google Apps Script code to match the new format.</p>
+    
+    <ol>
+      <li>Go to your Google Sheet → <strong>Extensions → Apps Script</strong>.</li>
+      <li>Replace the entire script with the code below and save it.</li>
+      <li>Click <strong>Deploy → Manage Deployments</strong>. Click the pencil icon to edit, change version to <strong>"New version"</strong>, and click <strong>Deploy</strong>.</li>
+      <li>Ensure "Execute as: Me" and "Who has access: Anyone" are selected.</li>
+    </ol>
+
+    <div class="code-block" id="apps-script-code">function doPost(e) {
+  try {
+    var data = JSON.parse(e.postData.contents);
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    var imageUrls = [];
+
+    // Process multiple base64 images
+    if (data.images && data.images.length > 0) {
+      var folderName = "Blog Images";
+      var folders = DriveApp.getFoldersByName(folderName);
+      var folder = folders.hasNext() ? folders.next() : DriveApp.createFolder(folderName);
+
+      for (var i = 0; i < data.images.length; i++) {
+        var img = data.images[i];
+        var contentType = img.data.substring(img.data.indexOf(":") + 1, img.data.indexOf(";"));
+        var base64Data = img.data.substring(img.data.indexOf(",") + 1);
+        var decoded = Utilities.base64Decode(base64Data);
+        var blob = Utilities.newBlob(decoded, contentType, img.name);
+        var file = folder.createFile(blob);
+        file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+        
+        // Construct web viewable Google Drive URL
+        var fileUrl = "https://lh3.googleusercontent.com/d/" + file.getId();
+        imageUrls.push(fileUrl);
+      }
+    }
+
+    var blogId = "B-" + Math.floor(Math.random() * 1000000) + "-" + new Date().getTime();
+
+    // Columns structure in sheet:
+    // Timestamp | Blog ID | Title | Category | Author | Summary | Content | Image URLs (separated by |)
+    sheet.appendRow([
+      new Date(),
+      blogId,
+      data.title || "",
+      data.category || "",
+      data.author || "",
+      data.summary || "",
+      data.content || "",
+      imageUrls.join("|") // Pipe separated URLs
+    ]);
+
+    return ContentService
+      .createTextOutput(JSON.stringify({ status: "success", id: blogId, urls: imageUrls }))
+      .setMimeType(ContentService.MimeType.JSON);
+
+  } catch (err) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ status: "error", message: err.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}</div>
+
+    <button class="btn btn-secondary" onclick="copyCode()" style="margin-top:12px; font-size:13px; padding: 6px 12px;">
+      📋 Copy Code
+    </button>
+  </div>
+
+</div>
+
+<script>
+  // =============================================
+  // CONFIG — Preserved from original project
+  // =============================================
+  const ADMIN_CONFIG = {
+    PASSWORD: "admin123",
+    BLOG_NAME: "My Blog",
+    APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbx27XXzjVErz-H76wyZzssdRx6gdyx_J6L5Ar0sptbafFtCyiKjtEr3g1XPELJZbRqD/exec",
+  };
+  // =============================================
+
+  document.getElementById("blog-title-header").textContent = ADMIN_CONFIG.BLOG_NAME + " — Admin";
+
+  let uploadedImages = []; // Stores objects: { name, data (base64 1920x1920) }
+
+  // ---- Login ----
+  function doLogin() {
+    const pwd = document.getElementById("pwd-input").value;
+    if (pwd === ADMIN_CONFIG.PASSWORD) {
+      document.getElementById("login-screen").style.display = "none";
+      document.getElementById("admin-panel").style.display = "block";
+      document.getElementById("logout-btn").style.display = "block";
+    } else {
+      document.getElementById("login-error").style.display = "block";
+    }
+  }
+
+  function logout() {
+    document.getElementById("login-screen").style.display = "flex";
+    document.getElementById("admin-panel").style.display = "none";
+    document.getElementById("logout-btn").style.display = "none";
+    document.getElementById("pwd-input").value = "";
+  }
+
+  // ---- Image Processing (Resizing to exactly 1920x1920 using HTML Canvas) ----
+  function handleImageSelection(event) {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      processImage(file);
+    }
+    // Reset file input so same file can be uploaded if deleted
+    event.target.value = "";
+  }
+
+  function processImage(file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = new Image();
+      img.onload = function() {
+        // Create 1920x1920 canvas
+        const canvas = document.createElement("canvas");
+        canvas.width = 1920;
+        canvas.height = 1920;
+        const ctx = canvas.getContext("2d");
+
+        // Calculate center crop dimensions
+        const size = Math.min(img.width, img.height);
+        const sx = (img.width - size) / 2;
+        const sy = (img.height - size) / 2;
+
+        // Draw cropped and scaled image onto canvas
+        ctx.drawImage(img, sx, sy, size, size, 0, 0, 1920, 1920);
+
+        // Convert to base64 JPEG at 0.85 quality
+        const base64Data = canvas.toDataURL("image/jpeg", 0.85);
+
+        // Save image data
+        uploadedImages.push({
+          name: file.name.substring(0, file.name.lastIndexOf('.')) + "_1920.jpg",
+          data: base64Data
+        });
+
+        renderPreviews();
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function deleteImage(index) {
+    uploadedImages.splice(index, 1);
+    renderPreviews();
+  }
+
+  function renderPreviews() {
+    const container = document.getElementById("previews-container");
+    container.innerHTML = "";
+
+    uploadedImages.forEach((img, index) => {
+      const card = document.createElement("div");
+      card.className = "preview-card";
+
+      const imageEl = document.createElement("img");
+      imageEl.src = img.data;
+      card.appendChild(imageEl);
+
+      const deleteBtn = document.createElement("button");
+      deleteBtn.className = "delete-btn";
+      deleteBtn.innerHTML = "×";
+      deleteBtn.type = "button";
+      deleteBtn.onclick = () => deleteImage(index);
+      card.appendChild(deleteBtn);
+
+      const sizeBadge = document.createElement("span");
+      sizeBadge.className = "size-badge";
+      sizeBadge.textContent = "1920x1920";
+      card.appendChild(sizeBadge);
+
+      container.appendChild(card);
+    });
+  }
+
+  // ---- Submit Form ----
+  async function submitBlog(e) {
+    e.preventDefault();
+    
+    const title = document.getElementById("f-title").value.trim();
+    const category = document.getElementById("f-category").value;
+    const author = document.getElementById("f-author").value.trim();
+    const summary = document.getElementById("f-summary").value.trim();
+    const content = document.getElementById("f-content").value.trim();
+
+    if (!title || !category || !author || !summary || !content) {
+      showAlert("error", "Please fill in all required fields.");
+      return;
+    }
+
+    if (uploadedImages.length === 0) {
+      showAlert("error", "Please upload at least one image.");
+      return;
+    }
+
+    if (!ADMIN_CONFIG.APPS_SCRIPT_URL || ADMIN_CONFIG.APPS_SCRIPT_URL.includes("YOUR_")) {
+      showAlert("error", "APPS_SCRIPT_URL is not set. Please deploy your Google Apps Script first.");
+      return;
+    }
+
+    const btn = document.getElementById("submit-btn");
+    const spinner = document.getElementById("submit-spinner");
+    btn.disabled = true;
+    spinner.style.display = "inline";
+
+    const payload = {
+      title,
+      category,
+      author,
+      summary,
+      content,
+      images: uploadedImages
+    };
+
+    try {
+      await fetch(ADMIN_CONFIG.APPS_SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      showAlert("success", "✅ Blog post successfully published! Google Sheet will be updated in a moment. Refresh your main website to see it.");
+      resetForm();
+    } catch (err) {
+      showAlert("error", "❌ Submission failed. Please check your network and Apps Script URL settings.");
+    } finally {
+      btn.disabled = false;
+      spinner.style.display = "none";
+    }
+  }
+
+  function resetForm() {
+    document.getElementById("blog-form").reset();
+    uploadedImages = [];
+    renderPreviews();
+  }
+
+  function showAlert(type, msg) {
+    const el = document.getElementById("submit-alert");
+    el.className = "alert " + type;
+    el.textContent = msg;
+    el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  function copyCode() {
+    const code = document.getElementById("apps-script-code").textContent;
+    navigator.clipboard.writeText(code).then(() => {
+      alert("Apps Script code copied! Paste it in Extensions -> Apps Script in Google Sheets.");
+    });
+  }
+</script>
+
+</body>
+</html>
