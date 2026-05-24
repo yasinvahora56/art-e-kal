@@ -3,27 +3,35 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Blog Admin — Publish Article</title>
+  <title>The Daily Pen — Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #f8fafc;
+      --bg: #f4f6f9;
       --surface: #ffffff;
-      --surface-hover: #f1f5f9;
+      --surface-2: #f8fafc;
       --border: #e2e8f0;
-      --border-focus: #3b82f6;
+      --border-focus: #6366f1;
       --text: #0f172a;
       --text-muted: #64748b;
-      --primary: #2563eb;
-      --primary-hover: #1d4ed8;
+      --text-light: #94a3b8;
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --primary-light: #eef2ff;
       --danger: #ef4444;
-      --danger-light: #fee2e2;
-      --success: #22c55e;
+      --danger-light: #fef2f2;
+      --success: #10b981;
       --success-light: #f0fdf4;
-      --radius: 8px;
-      --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
-      --font: 'Inter', -apple-system, sans-serif;
+      --warning: #f59e0b;
+      --radius: 10px;
+      --radius-lg: 16px;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+      --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }
 
     body {
@@ -31,523 +39,640 @@
       background: var(--bg);
       color: var(--text);
       -webkit-font-smoothing: antialiased;
-      line-height: 1.5;
-      padding-bottom: 60px;
+      min-height: 100vh;
     }
 
-    header {
+    /* ── HEADER ── */
+    .site-header {
       background: var(--surface);
       border-bottom: 1px solid var(--border);
-      padding: 16px 24px;
+      padding: 0 32px;
+      height: 60px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       position: sticky;
       top: 0;
-      z-index: 50;
-      box-shadow: var(--shadow);
+      z-index: 100;
+      box-shadow: var(--shadow-sm);
     }
-    .logo { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 18px; }
-    .logo span { font-size: 20px; }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    .header-logo {
+      display: flex; align-items: center; gap: 8px;
+      font-weight: 700; font-size: 16px; color: var(--text);
+      text-decoration: none;
+    }
+    .header-logo-icon {
+      width: 32px; height: 32px;
+      background: var(--primary);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-size: 15px;
+    }
+    .header-divider {
+      width: 1px; height: 20px;
+      background: var(--border);
+    }
+    .header-badge {
+      font-size: 12px; font-weight: 600;
+      color: var(--text-muted);
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      padding: 3px 10px; border-radius: 20px;
+    }
+    .header-right { display: flex; align-items: center; gap: 10px; }
+    .btn-logout {
+      display: none; align-items: center; gap: 6px;
+      padding: 7px 14px; border-radius: 8px;
+      font-size: 13px; font-weight: 600;
+      font-family: var(--font);
+      background: var(--surface-2);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-logout:hover { background: var(--danger-light); color: var(--danger); border-color: var(--danger); }
+    .session-info {
+      display: none; align-items: center; gap: 6px;
+      font-size: 12px; color: var(--text-muted);
+    }
+    .session-dot {
+      width: 7px; height: 7px;
+      background: var(--success);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
 
-    #login-screen {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: calc(100vh - 120px);
+    /* ── LOGIN PAGE ── */
+    .login-page {
+      min-height: calc(100vh - 60px);
+      display: flex; align-items: center; justify-content: center;
       padding: 24px;
+      background: linear-gradient(135deg, #f0f4ff 0%, #faf5ff 100%);
     }
-    .login-card {
+    .login-box {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 32px;
-      width: 100%;
-      max-width: 400px;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+      border-radius: var(--radius-lg);
+      padding: 40px;
+      width: 100%; max-width: 420px;
+      box-shadow: var(--shadow-md);
     }
-    .login-card h2 { font-size: 22px; margin-bottom: 8px; font-weight: 700; }
-    .login-card p { font-size: 14px; color: var(--text-muted); margin-bottom: 24px; }
+    .login-icon {
+      width: 52px; height: 52px;
+      background: var(--primary-light);
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; margin-bottom: 20px;
+    }
+    .login-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+    .login-subtitle { font-size: 14px; color: var(--text-muted); margin-bottom: 28px; }
+    .field-label {
+      display: block; font-size: 13px; font-weight: 600;
+      color: var(--text); margin-bottom: 6px;
+    }
+    .field-input {
+      width: 100%; padding: 11px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px; font-size: 14px;
+      font-family: var(--font); color: var(--text);
+      background: var(--surface); outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .field-input:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+    }
+    .login-error {
+      display: none; align-items: center; gap: 8px;
+      background: var(--danger-light); border: 1px solid #fecaca;
+      color: var(--danger); border-radius: 8px;
+      padding: 10px 14px; font-size: 13px; font-weight: 500;
+      margin-top: 14px;
+    }
+    .btn-login {
+      width: 100%; margin-top: 20px;
+      padding: 12px; border-radius: 8px;
+      background: var(--primary); color: white;
+      font-size: 14px; font-weight: 600;
+      font-family: var(--font); border: none;
+      cursor: pointer; transition: background 0.15s, transform 0.1s;
+    }
+    .btn-login:hover { background: var(--primary-hover); }
+    .btn-login:active { transform: scale(0.99); }
+    .btn-login:disabled { opacity: 0.65; cursor: not-allowed; }
 
-    #admin-panel { display: none; max-width: 800px; margin: 32px auto; padding: 0 20px; }
+    /* ── ADMIN LAYOUT ── */
+    .admin-wrap {
+      display: none;
+      max-width: 860px;
+      margin: 36px auto;
+      padding: 0 24px 60px;
+    }
+    .page-header { margin-bottom: 28px; }
+    .page-title { font-size: 22px; font-weight: 700; }
+    .page-subtitle { font-size: 14px; color: var(--text-muted); margin-top: 4px; }
 
+    /* ── CARD ── */
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 28px;
+      border-radius: var(--radius-lg);
       box-shadow: var(--shadow);
-      margin-bottom: 24px;
+      overflow: hidden;
     }
-    .card h2 { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
-    .card .subtitle { font-size: 14px; color: var(--text-muted); margin-bottom: 24px; }
+    .card-header {
+      padding: 20px 28px 0;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .card-header-icon {
+      width: 38px; height: 38px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; flex-shrink: 0;
+    }
+    .icon-purple { background: var(--primary-light); }
+    .card-header-text h2 { font-size: 16px; font-weight: 700; }
+    .card-header-text p { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+    .card-body { padding: 24px 28px 28px; }
 
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    /* ── FORM ── */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
     .form-group { display: flex; flex-direction: column; gap: 6px; }
     .form-group.full { grid-column: 1 / -1; }
-    label { font-size: 13px; font-weight: 600; color: var(--text); }
-
-    input[type="text"],
-    select,
-    textarea {
-      width: 100%;
-      padding: 10px 14px;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      font-size: 14px;
-      font-family: inherit;
-      color: var(--text);
-      background: var(--surface);
-      outline: none;
-      transition: border-color 0.15s, box-shadow 0.15s;
+    .form-label {
+      font-size: 13px; font-weight: 600; color: var(--text);
+      display: flex; align-items: center; gap: 5px;
     }
-    input:focus, select:focus, textarea:focus {
+    .form-label .required { color: var(--danger); }
+    .form-hint { font-size: 12px; color: var(--text-light); margin-top: 4px; }
+
+    input[type="text"], select, textarea {
+      width: 100%; padding: 10px 14px;
+      border: 1.5px solid var(--border); border-radius: 8px;
+      font-size: 14px; font-family: var(--font);
+      color: var(--text); background: var(--surface);
+      outline: none; transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    input[type="text"]:focus, select:focus, textarea:focus {
       border-color: var(--border-focus);
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
     }
-    textarea { resize: vertical; min-height: 120px; }
+    textarea { resize: vertical; min-height: 120px; line-height: 1.6; }
+    select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; }
 
-    /* Drag & Drop Area */
-    .img-upload-area {
-      border: 2px dashed var(--border);
-      border-radius: var(--radius);
-      padding: 32px 24px;
-      text-align: center;
-      cursor: pointer;
-      transition: border-color 0.15s, background-color 0.15s;
+    /* ── CHAR COUNTER ── */
+    .field-footer { display: flex; justify-content: flex-end; margin-top: 4px; }
+    .char-count { font-size: 11px; color: var(--text-light); }
+    .char-count.warn { color: var(--warning); }
+    .char-count.over { color: var(--danger); }
+
+    /* ── IMAGE UPLOAD ── */
+    .upload-zone {
+      border: 2px dashed var(--border); border-radius: var(--radius);
+      padding: 28px 20px; text-align: center; cursor: pointer;
+      transition: all 0.15s; background: var(--surface-2);
     }
-    .img-upload-area:hover { border-color: var(--primary); background-color: var(--surface-hover); }
-    .img-upload-area input { display: none; }
-    .upload-icon { font-size: 36px; margin-bottom: 8px; }
-    .upload-title { font-size: 14px; font-weight: 600; }
-    .upload-desc { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
-
-    /* Previews Grid */
+    .upload-zone:hover { border-color: var(--primary); background: var(--primary-light); }
+    .upload-zone.drag-over { border-color: var(--primary); background: var(--primary-light); }
+    .upload-zone input { display: none; }
+    .upload-zone-icon { font-size: 32px; margin-bottom: 8px; }
+    .upload-zone-title { font-size: 14px; font-weight: 600; color: var(--text); }
+    .upload-zone-sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+    .upload-zone-badge {
+      display: inline-block; margin-top: 10px;
+      font-size: 11px; font-weight: 600;
+      background: var(--primary-light); color: var(--primary);
+      padding: 3px 10px; border-radius: 20px;
+    }
     .previews-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-      gap: 12px;
-      margin-top: 16px;
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      gap: 10px; margin-top: 14px;
     }
     .preview-card {
-      position: relative;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      overflow: hidden;
-      aspect-ratio: 1;
-      background: var(--surface-hover);
+      position: relative; border: 1px solid var(--border);
+      border-radius: 8px; overflow: hidden;
+      aspect-ratio: 1; background: var(--surface-2);
     }
-    .preview-card img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    .preview-card .delete-btn {
-      position: absolute;
-      top: 4px;
-      right: 4px;
-      background: rgba(15, 23, 42, 0.7);
-      color: #fff;
-      border: none;
-      border-radius: 50%;
-      width: 24px;
-      height: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      font-size: 14px;
-      line-height: 1;
+    .preview-card img { width: 100%; height: 100%; object-fit: cover; }
+    .preview-del {
+      position: absolute; top: 5px; right: 5px;
+      width: 22px; height: 22px;
+      background: rgba(15,23,42,0.65); color: #fff;
+      border: none; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 13px;
       transition: background 0.15s;
     }
-    .preview-card .delete-btn:hover {
-      background: var(--danger);
-    }
-    .preview-card .size-badge {
-      position: absolute;
-      bottom: 4px;
-      left: 4px;
-      background: rgba(15, 23, 42, 0.75);
-      color: #fff;
-      font-size: 9px;
-      padding: 2px 5px;
-      border-radius: 3px;
-      font-family: monospace;
+    .preview-del:hover { background: var(--danger); }
+    .preview-badge {
+      position: absolute; bottom: 4px; left: 4px;
+      background: rgba(15,23,42,0.7); color: #fff;
+      font-size: 9px; padding: 2px 5px;
+      border-radius: 3px; font-family: monospace;
     }
 
-    /* Buttons */
+    /* ── DIVIDER ── */
+    .form-divider { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+
+    /* ── FORM ACTIONS ── */
+    .form-actions {
+      display: flex; align-items: center;
+      justify-content: space-between; flex-wrap: wrap; gap: 12px;
+    }
+    .form-actions-left { display: flex; align-items: center; gap: 8px; }
+    .word-count-info { font-size: 12px; color: var(--text-light); }
+
+    /* ── BUTTONS ── */
     .btn {
-      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-      padding: 10px 20px; border-radius: 6px;
-      font-size: 14px; font-weight: 600; font-family: inherit;
+      display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+      padding: 10px 20px; border-radius: 8px;
+      font-size: 14px; font-weight: 600; font-family: var(--font);
       cursor: pointer; border: none; transition: all 0.15s;
     }
     .btn-primary { background: var(--primary); color: #fff; }
     .btn-primary:hover { background: var(--primary-hover); }
     .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
-    .btn-secondary {
-      background: var(--surface); color: var(--text);
-      border: 1px solid var(--border);
+    .btn-ghost {
+      background: transparent; color: var(--text-muted);
+      border: 1.5px solid var(--border);
     }
-    .btn-secondary:hover { background: var(--surface-hover); }
+    .btn-ghost:hover { background: var(--surface-2); color: var(--text); }
+    .btn-publish {
+      padding: 11px 28px; font-size: 14px;
+      background: var(--primary); color: white;
+      border-radius: 8px; border: none;
+      font-weight: 600; font-family: var(--font);
+      cursor: pointer; transition: all 0.15s;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .btn-publish:hover { background: var(--primary-hover); box-shadow: 0 4px 12px rgba(99,102,241,0.3); }
+    .btn-publish:disabled { opacity: 0.6; cursor: not-allowed; box-shadow: none; }
 
-    /* Alert */
+    /* ── ALERT ── */
     .alert {
-      padding: 12px 16px; border-radius: 6px;
-      font-size: 14px; margin-bottom: 20px;
+      display: none; align-items: flex-start; gap: 10px;
+      padding: 14px 16px; border-radius: 8px;
+      font-size: 14px; margin-bottom: 20px; line-height: 1.5;
+    }
+    .alert.show { display: flex; }
+    .alert-success { background: var(--success-light); border: 1px solid #6ee7b7; color: #065f46; }
+    .alert-error { background: var(--danger-light); border: 1px solid #fca5a5; color: #991b1b; }
+    .alert-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+    /* ── SPINNER ── */
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
       display: none;
     }
-    .alert.success { background: var(--success-light); border: 1px solid var(--success); color: var(--success); display: block; }
-    .alert.error { background: var(--danger-light); border: 1px solid var(--danger); color: var(--danger); display: block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-    .info-box {
-      background: #eff6ff; border: 1px solid #bfdbfe;
-      border-radius: var(--radius); padding: 16px;
-      font-size: 13.5px; color: #1d4ed8; line-height: 1.6;
-      margin-top: 16px;
-    }
-
-    .code-block {
-      background: #0f172a; color: #f8fafc;
-      border-radius: 6px; padding: 16px;
-      font-size: 12px; font-family: monospace;
-      overflow-x: auto; white-space: pre;
-      max-height: 250px; overflow-y: auto;
-      margin-top: 12px;
-      border: 1px solid var(--border);
-    }
-
-    /* Setup Guide List */
-    ol { padding-left: 20px; margin-top: 10px; }
-    ol li { margin-bottom: 8px; font-size: 13.5px; color: var(--text-muted); }
-
+    /* ── RESPONSIVE ── */
     @media (max-width: 600px) {
+      .site-header { padding: 0 16px; }
+      .admin-wrap { padding: 0 16px 60px; margin-top: 24px; }
+      .card-header { padding: 18px 20px 0; }
+      .card-body { padding: 20px 20px 24px; }
       .form-grid { grid-template-columns: 1fr; }
-      .card { padding: 20px; }
-      body { padding-bottom: 40px; }
+      .login-box { padding: 28px 24px; }
+      .form-actions { flex-direction: column; align-items: stretch; }
+      .btn-publish { justify-content: center; }
     }
   </style>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
-<!-- Header -->
-<header>
-  <div class="logo">
-    <span>✍️</span>
-    <span id="blog-title-header">Blog Admin</span>
+<!-- ── HEADER ── -->
+<header class="site-header">
+  <div class="header-left">
+    <a class="header-logo" href="#">
+      <div class="header-logo-icon">✦</div>
+      The Daily Pen
+    </a>
+    <div class="header-divider"></div>
+    <span class="header-badge">Admin Panel</span>
   </div>
-  <div>
-    <button id="logout-btn" class="btn btn-secondary" onclick="logout()" style="display:none; padding:6px 12px; font-size:13px;">Logout</button>
+  <div class="header-right">
+    <div class="session-info" id="session-info">
+      <div class="session-dot"></div>
+      <span id="session-label">Session active</span>
+    </div>
+    <button class="btn-logout" id="logout-btn" onclick="logout()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Sign out
+    </button>
   </div>
 </header>
 
-<!-- Login Screen -->
-<div id="login-screen">
-  <div class="login-card">
-    <h2>🔐 Admin Login</h2>
-    <p>Please enter the admin password to publish blog posts.</p>
-    <div class="form-group" style="margin-bottom:20px;">
-      <label>Password</label>
-      <input type="password" id="pwd-input" placeholder="Enter password..." onkeydown="if(event.key==='Enter') doLogin()" />
+<!-- ── LOGIN PAGE ── -->
+<div class="login-page" id="login-page">
+  <div class="login-box">
+    <div class="login-icon">🔐</div>
+    <h1 class="login-title">Welcome back</h1>
+    <p class="login-subtitle">Sign in to your admin panel to publish and manage blog posts.</p>
+
+    <label class="field-label" for="pwd-input">Password</label>
+    <input
+      class="field-input" type="password" id="pwd-input"
+      placeholder="Enter your admin password"
+      onkeydown="if(event.key==='Enter') doLogin()"
+      autocomplete="current-password"
+    />
+
+    <div class="login-error" id="login-error">
+      <span>⚠️</span>
+      <span id="login-error-msg">Incorrect password. Please try again.</span>
     </div>
-    <div id="login-error" style="color:var(--danger); font-size:13px; margin-bottom:12px; display:none; font-weight: 500;">
-      ❌ Incorrect password. Please try again.
-    </div>
-    <button class="btn btn-primary" onclick="doLogin()" style="width:100%;">Login</button>  </div>
+
+    <button class="btn-login" id="login-btn" onclick="doLogin()">
+      <span id="login-btn-text">Sign in</span>
+      <div class="spinner" id="login-spinner" style="border-top-color:white;"></div>
+    </button>
+  </div>
 </div>
 
-<!-- Admin Panel -->
-<div id="admin-panel">
+<!-- ── ADMIN PANEL ── -->
+<div class="admin-wrap" id="admin-panel">
 
-  <div class="card">
-    <h2>✍️ Write & Publish Blog</h2>
-    <p class="subtitle">Write your blog content and upload multiple images. Images are automatically cropped and resized to exactly 1920x1920 px before upload.</p>
-
-    <div id="submit-alert" class="alert"></div>
-
-    <form id="blog-form" onsubmit="submitBlog(event)">
-      <div class="form-grid">
-
-        <div class="form-group full">
-          <label>Blog Title *</label>
-          <input type="text" id="f-title" placeholder="e.g., 10 Tips for Healthier Lifestyle" required />
-        </div>
-
-        <div class="form-group">
-          <label>Category *</label>
-          <select id="f-category" required>
-            <option value="General">General</option>
-            <option value="Technology">Technology</option>
-            <option value="Lifestyle">Lifestyle</option>
-            <option value="Travel">Travel</option>
-            <option value="Food & Cooking">Food & Cooking</option>
-            <option value="Business & Finance">Business & Finance</option>
-            <option value="Health & Fitness">Health & Fitness</option>
-            <option value="Other">Other</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label>Author Name *</label>
-          <input type="text" id="f-author" placeholder="e.g., Jane Doe" required />
-        </div>
-
-        <div class="form-group full">
-          <label>Summary / Excerpt *</label>
-          <textarea id="f-summary" placeholder="Write a short summary (1-2 sentences) of this blog post..." required style="min-height: 60px;"></textarea>
-        </div>
-
-        <div class="form-group full">
-          <label>Blog Content *</label>
-          <textarea id="f-content" placeholder="Write your full article here. To start a new paragraph, press Enter twice to create a double line break." required style="min-height: 250px;"></textarea>
-        </div>
-
-        <div class="form-group full">
-          <label>Blog Images (Resized to 1920x1920 px) *</label>
-          <div class="img-upload-area" onclick="document.getElementById('f-images').click()">
-            <input type="file" id="f-images" accept="image/*" multiple onchange="handleImageSelection(event)" />
-            <div class="upload-icon">📷</div>
-            <div class="upload-title">Click to select one or multiple images</div>
-            <div class="upload-desc">Images will automatically crop and resize to exactly 1920x1920 pixels</div>
-          </div>
-          
-          <div class="previews-grid" id="previews-container"></div>
-        </div>
-
-      </div>
-
-      <hr style="border: none; border-top: 1px solid var(--border); margin: 24px 0;" />
-
-      <div style="display:flex; gap:12px; justify-content:flex-end; flex-wrap:wrap;">
-        <button type="button" class="btn btn-secondary" onclick="resetForm()">Reset Form</button>
-        <button type="submit" class="btn btn-primary" id="submit-btn">
-          <span id="submit-spinner" style="display:none; margin-right: 4px;">⏳</span>
-          Publish Blog
-        </button>
-      </div>
-    </form>
+  <div class="page-header">
+    <h1 class="page-title">New Article</h1>
+    <p class="page-subtitle">Write and publish a new blog post to The Daily Pen.</p>
   </div>
 
-  <!-- Setup instructions -->
   <div class="card">
-    <h2>🔧 Google Apps Script Setup Instructions</h2>
-    <p class="subtitle">Password is now stored securely in Apps Script — not in this HTML file. Follow these steps to set it up.</p>
-    
-    <ol>
-      <li>Go to your Google Sheet → <strong>Extensions → Apps Script</strong>.</li>
-      <li>Replace the entire script with the code below and save it.</li>
-      <li>On <strong>line 2</strong>, change <code>your-strong-password-here</code> to your actual password.</li>
-      <li>Click <strong>Deploy → Manage Deployments</strong>. Click the pencil icon, change version to <strong>"New version"</strong>, and click <strong>Deploy</strong>.</li>
-      <li>Ensure <strong>"Execute as: Me"</strong> and <strong>"Who has access: Anyone"</strong> are selected.</li>
-      <li>✅ Your password is now only in Apps Script — never visible in public HTML code.</li>
-    </ol>
+    <div class="card-header">
+      <div class="card-header-icon icon-purple">✍️</div>
+      <div class="card-header-text">
+        <h2>Article Details</h2>
+        <p>Fill in all fields — they will appear exactly as written on the blog.</p>
+      </div>
+    </div>
 
-    <div class="code-block" id="apps-script-code">// ── STEP 1: Set your password here (only in Apps Script, never in HTML) ──
-var ADMIN_PASSWORD = "your-strong-password-here";
+    <div class="card-body">
+      <div id="submit-alert" class="alert">
+        <span class="alert-icon" id="alert-icon"></span>
+        <span id="alert-msg"></span>
+      </div>
 
-// ── Login handler — called by admin page to verify password ──
-function doGet(e) {
-  var params = e.parameter;
-  if (params.action === "login") {
-    if (params.pwd === ADMIN_PASSWORD) {
-      // Generate a simple time-based token
-      var token = Utilities.base64Encode(
-        ADMIN_PASSWORD + "|" + new Date().toDateString()
-      );
-      return ContentService
-        .createTextOutput(JSON.stringify({ status: "ok", token: token }))
-        .setMimeType(ContentService.MimeType.JSON);
-    } else {
-      return ContentService
-        .createTextOutput(JSON.stringify({ status: "fail" }))
-        .setMimeType(ContentService.MimeType.JSON);
-    }
-  }
-  return ContentService
-    .createTextOutput(JSON.stringify({ status: "invalid" }))
-    .setMimeType(ContentService.MimeType.JSON);
-}
+      <form id="blog-form" onsubmit="submitBlog(event)">
+        <div class="form-grid">
 
-function doPost(e) {
-  try {
-    var data = JSON.parse(e.postData.contents);
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-    var imageUrls = [];
+          <!-- Title -->
+          <div class="form-group full">
+            <label class="form-label" for="f-title">
+              Title <span class="required">*</span>
+            </label>
+            <input type="text" id="f-title" placeholder="e.g., 10 Tips for a Healthier Lifestyle" required maxlength="120" oninput="updateCount('f-title','cnt-title',120)" />
+            <div class="field-footer">
+              <span class="char-count" id="cnt-title">0 / 120</span>
+            </div>
+          </div>
 
-    // Process multiple base64 images
-    if (data.images && data.images.length > 0) {
-      var folderName = "Blog Images";
-      var folders = DriveApp.getFoldersByName(folderName);
-      var folder = folders.hasNext() ? folders.next() : DriveApp.createFolder(folderName);
+          <!-- Category -->
+          <div class="form-group">
+            <label class="form-label" for="f-category">Category <span class="required">*</span></label>
+            <select id="f-category" required>
+              <option value="">Select a category</option>
+              <option value="Technology">Technology</option>
+              <option value="Design">Design</option>
+              <option value="Science">Science</option>
+              <option value="Culture">Culture</option>
+              <option value="Lifestyle">Lifestyle</option>
+              <option value="Travel">Travel</option>
+              <option value="Food & Cooking">Food & Cooking</option>
+              <option value="Health & Fitness">Health & Fitness</option>
+              <option value="Business & Finance">Business & Finance</option>
+              <option value="General">General</option>
+            </select>
+          </div>
 
-      for (var i = 0; i < data.images.length; i++) {
-        var img = data.images[i];
-        var contentType = img.data.substring(img.data.indexOf(":") + 1, img.data.indexOf(";"));
-        var base64Data = img.data.substring(img.data.indexOf(",") + 1);
-        var decoded = Utilities.base64Decode(base64Data);
-        var blob = Utilities.newBlob(decoded, contentType, img.name);
-        var file = folder.createFile(blob);
-        file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-        
-        // Construct web viewable Google Drive URL
-        var fileUrl = "https://lh3.googleusercontent.com/d/" + file.getId();
-        imageUrls.push(fileUrl);
-      }
-    }
+          <!-- Author -->
+          <div class="form-group">
+            <label class="form-label" for="f-author">Author <span class="required">*</span></label>
+            <input type="text" id="f-author" placeholder="e.g., Jane Doe" required maxlength="60" />
+          </div>
 
-    var blogId = "B-" + Math.floor(Math.random() * 1000000) + "-" + new Date().getTime();
+          <!-- Summary -->
+          <div class="form-group full">
+            <label class="form-label" for="f-summary">
+              Summary <span class="required">*</span>
+            </label>
+            <textarea id="f-summary" placeholder="Write a short 1–2 sentence summary shown on the blog listing..." required style="min-height:72px;" maxlength="280" oninput="updateCount('f-summary','cnt-summary',280)"></textarea>
+            <div class="field-footer">
+              <span class="char-count" id="cnt-summary">0 / 280</span>
+            </div>
+          </div>
 
-    // Columns structure in sheet:
-    // Timestamp | Blog ID | Title | Category | Author | Summary | Content | Image URLs (separated by |)
-    sheet.appendRow([
-      new Date(),
-      blogId,
-      data.title || "",
-      data.category || "",
-      data.author || "",
-      data.summary || "",
-      data.content || "",
-      imageUrls.join("|") // Pipe separated URLs
-    ]);
+          <!-- Content -->
+          <div class="form-group full">
+            <label class="form-label" for="f-content">
+              Content <span class="required">*</span>
+            </label>
+            <textarea id="f-content" placeholder="Write your full article here.&#10;&#10;Press Enter twice between paragraphs.&#10;&#10;Use # Heading for section titles." required style="min-height:320px;" oninput="updateWordCount()"></textarea>
+            <div class="field-footer">
+              <span class="char-count" id="cnt-words">0 words</span>
+            </div>
+          </div>
 
-    return ContentService
-      .createTextOutput(JSON.stringify({ status: "success", id: blogId, urls: imageUrls }))
-      .setMimeType(ContentService.MimeType.JSON);
+          <!-- Images -->
+          <div class="form-group full">
+            <label class="form-label">
+              Images <span class="required">*</span>
+            </label>
+            <div class="upload-zone" id="upload-zone"
+              onclick="document.getElementById('f-images').click()"
+              ondragover="handleDragOver(event)"
+              ondragleave="handleDragLeave(event)"
+              ondrop="handleDrop(event)">
+              <input type="file" id="f-images" accept="image/*" multiple onchange="handleImageSelection(event)" />
+              <div class="upload-zone-icon">🖼️</div>
+              <div class="upload-zone-title">Click to upload or drag & drop images</div>
+              <div class="upload-zone-sub">PNG, JPG, WEBP — any size accepted</div>
+              <div class="upload-zone-badge">Auto-resized to 1920 × 1920 px</div>
+            </div>
+            <div class="previews-grid" id="previews-container"></div>
+          </div>
 
-  } catch (err) {
-    return ContentService
-      .createTextOutput(JSON.stringify({ status: "error", message: err.toString() }))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}</div>
+        </div>
 
-    <button class="btn btn-secondary" onclick="copyCode()" style="margin-top:12px; font-size:13px; padding: 6px 12px;">
-      📋 Copy Code
-    </button>
+        <hr class="form-divider" />
+
+        <div class="form-actions">
+          <div class="form-actions-left">
+            <span class="word-count-info" id="read-time-info">—</span>
+          </div>
+          <div style="display:flex;gap:10px;">
+            <button type="button" class="btn btn-ghost" onclick="resetForm()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+              Reset
+            </button>
+            <button type="submit" class="btn-publish" id="submit-btn">
+              <div class="spinner" id="submit-spinner"></div>
+              <svg id="publish-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              Publish Article
+            </button>
+          </div>
+        </div>
+
+      </form>
+    </div>
   </div>
 
 </div>
 
 <script>
-  // =============================================
-  // CONFIG — Password is verified server-side
-  // via Google Apps Script (NOT stored here)
-  // =============================================
   const ADMIN_CONFIG = {
     BLOG_NAME: "The Daily Pen",
     APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbx27XXzjVErz-H76wyZzssdRx6gdyx_J6L5Ar0sptbafFtCyiKjtEr3g1XPELJZbRqD/exec",
   };
-  // =============================================
 
   const SESSION_KEY = "adm_tok";
-  const SESSION_EXPIRY_KEY = "adm_tok_exp";
-  const SESSION_DURATION_MS = 4 * 60 * 60 * 1000; // 4 hours
-
-  document.getElementById("blog-title-header").textContent = ADMIN_CONFIG.BLOG_NAME + " — Admin";
+  const SESSION_EXP = "adm_tok_exp";
+  const SESSION_MS  = 4 * 60 * 60 * 1000; // 4 hours
 
   let uploadedImages = [];
 
-  // ---- Check existing session on load ----
-  (function checkSession() {
-    const token = sessionStorage.getItem(SESSION_KEY);
-    const expiry = parseInt(sessionStorage.getItem(SESSION_EXPIRY_KEY) || "0");
-    if (token && Date.now() < expiry) {
-      showAdminPanel();
-    }
+  // ── Session check on load ──
+  (function init() {
+    const tok = sessionStorage.getItem(SESSION_KEY);
+    const exp = parseInt(sessionStorage.getItem(SESSION_EXP) || "0");
+    if (tok && Date.now() < exp) showPanel();
   })();
 
-  // ---- Login — password sent to Apps Script for verification ----
+  // ── Login ──
   async function doLogin() {
     const pwd = document.getElementById("pwd-input").value.trim();
     if (!pwd) return;
 
-    const loginBtn = document.querySelector('#login-screen .btn-primary');
-    const errEl = document.getElementById("login-error");
+    const btn     = document.getElementById("login-btn");
+    const btnText = document.getElementById("login-btn-text");
+    const spinner = document.getElementById("login-spinner");
+    const errEl   = document.getElementById("login-error");
+    const errMsg  = document.getElementById("login-error-msg");
+
     errEl.style.display = "none";
-    loginBtn.disabled = true;
-    loginBtn.textContent = "Verifying...";
+    btn.disabled = true;
+    btnText.textContent = "Signing in…";
+    spinner.style.display = "block";
 
     try {
-      // Send password to Apps Script doGet for server-side check
       const url = `${ADMIN_CONFIG.APPS_SCRIPT_URL}?action=login&pwd=${encodeURIComponent(pwd)}`;
-      const res = await fetch(url);
+      const res  = await fetch(url);
       const json = await res.json();
 
       if (json.status === "ok" && json.token) {
-        // Store time-limited session token (not the password)
         sessionStorage.setItem(SESSION_KEY, json.token);
-        sessionStorage.setItem(SESSION_EXPIRY_KEY, Date.now() + SESSION_DURATION_MS);
-        showAdminPanel();
+        sessionStorage.setItem(SESSION_EXP, Date.now() + SESSION_MS);
+        showPanel();
       } else {
-        errEl.style.display = "block";
+        errMsg.textContent = "Incorrect password. Please try again.";
+        errEl.style.display = "flex";
+        document.getElementById("pwd-input").focus();
       }
-    } catch (err) {
-      errEl.textContent = "❌ Could not reach server. Check your connection.";
-      errEl.style.display = "block";
+    } catch {
+      errMsg.textContent = "Could not reach server. Check your connection.";
+      errEl.style.display = "flex";
     } finally {
-      loginBtn.disabled = false;
-      loginBtn.textContent = "Login";
+      btn.disabled = false;
+      btnText.textContent = "Sign in";
+      spinner.style.display = "none";
     }
   }
 
-  function showAdminPanel() {
-    document.getElementById("login-screen").style.display = "none";
+  function showPanel() {
+    document.getElementById("login-page").style.display  = "none";
     document.getElementById("admin-panel").style.display = "block";
-    document.getElementById("logout-btn").style.display = "block";
+    document.getElementById("logout-btn").style.display  = "flex";
+    document.getElementById("session-info").style.display = "flex";
+    startSessionTimer();
   }
 
   function logout() {
     sessionStorage.removeItem(SESSION_KEY);
-    sessionStorage.removeItem(SESSION_EXPIRY_KEY);
-    document.getElementById("login-screen").style.display = "flex";
+    sessionStorage.removeItem(SESSION_EXP);
+    document.getElementById("login-page").style.display  = "flex";
     document.getElementById("admin-panel").style.display = "none";
-    document.getElementById("logout-btn").style.display = "none";
+    document.getElementById("logout-btn").style.display  = "none";
+    document.getElementById("session-info").style.display = "none";
     document.getElementById("pwd-input").value = "";
   }
 
-  // ---- Image Processing (Resizing to exactly 1920x1920 using HTML Canvas) ----
-  function handleImageSelection(event) {
-    const files = event.target.files;
-    if (!files || files.length === 0) return;
-
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      processImage(file);
+  function startSessionTimer() {
+    function tick() {
+      const exp  = parseInt(sessionStorage.getItem(SESSION_EXP) || "0");
+      const left = Math.max(0, exp - Date.now());
+      const h    = Math.floor(left / 3600000);
+      const m    = Math.floor((left % 3600000) / 60000);
+      document.getElementById("session-label").textContent =
+        left > 0 ? `Session expires in ${h}h ${m}m` : "Session expired";
+      if (left <= 0) logout();
     }
-    // Reset file input so same file can be uploaded if deleted
-    event.target.value = "";
+    tick();
+    setInterval(tick, 60000);
+  }
+
+  // ── Char / word counters ──
+  function updateCount(fieldId, countId, max) {
+    const len = document.getElementById(fieldId).value.length;
+    const el  = document.getElementById(countId);
+    el.textContent = `${len} / ${max}`;
+    el.className = "char-count" + (len > max * 0.9 ? (len >= max ? " over" : " warn") : "");
+  }
+
+  function updateWordCount() {
+    const text  = document.getElementById("f-content").value.trim();
+    const words = text ? text.split(/\s+/).length : 0;
+    const mins  = Math.max(1, Math.ceil(words / 200));
+    document.getElementById("cnt-words").textContent = `${words} words`;
+    document.getElementById("read-time-info").textContent = `~${mins} min read`;
+  }
+
+  // ── Drag & drop ──
+  function handleDragOver(e) {
+    e.preventDefault();
+    document.getElementById("upload-zone").classList.add("drag-over");
+  }
+  function handleDragLeave() {
+    document.getElementById("upload-zone").classList.remove("drag-over");
+  }
+  function handleDrop(e) {
+    e.preventDefault();
+    document.getElementById("upload-zone").classList.remove("drag-over");
+    const files = e.dataTransfer.files;
+    for (const f of files) if (f.type.startsWith("image/")) processImage(f);
+  }
+
+  // ── Image processing ──
+  function handleImageSelection(e) {
+    for (const f of e.target.files) processImage(f);
+    e.target.value = "";
   }
 
   function processImage(file) {
     const reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = (e) => {
       const img = new Image();
-      img.onload = function() {
-        // Create 1920x1920 canvas
+      img.onload = () => {
         const canvas = document.createElement("canvas");
-        canvas.width = 1920;
-        canvas.height = 1920;
-        const ctx = canvas.getContext("2d");
-
-        // Calculate center crop dimensions
+        canvas.width = canvas.height = 1920;
+        const ctx  = canvas.getContext("2d");
         const size = Math.min(img.width, img.height);
-        const sx = (img.width - size) / 2;
-        const sy = (img.height - size) / 2;
-
-        // Draw cropped and scaled image onto canvas
+        const sx   = (img.width  - size) / 2;
+        const sy   = (img.height - size) / 2;
         ctx.drawImage(img, sx, sy, size, size, 0, 0, 1920, 1920);
-
-        // Convert to base64 JPEG at 0.85 quality
-        const base64Data = canvas.toDataURL("image/jpeg", 0.85);
-
-        // Save image data
         uploadedImages.push({
-          name: file.name.substring(0, file.name.lastIndexOf('.')) + "_1920.jpg",
-          data: base64Data
+          name: file.name.replace(/\.[^.]+$/, "") + "_1920.jpg",
+          data: canvas.toDataURL("image/jpeg", 0.85),
         });
-
         renderPreviews();
       };
       img.src = e.target.result;
@@ -555,93 +680,63 @@ function doPost(e) {
     reader.readAsDataURL(file);
   }
 
-  function deleteImage(index) {
-    uploadedImages.splice(index, 1);
-    renderPreviews();
-  }
+  function deleteImage(i) { uploadedImages.splice(i, 1); renderPreviews(); }
 
   function renderPreviews() {
-    const container = document.getElementById("previews-container");
-    container.innerHTML = "";
-
-    uploadedImages.forEach((img, index) => {
+    const c = document.getElementById("previews-container");
+    c.innerHTML = "";
+    uploadedImages.forEach((img, i) => {
       const card = document.createElement("div");
       card.className = "preview-card";
-
-      const imageEl = document.createElement("img");
-      imageEl.src = img.data;
-      card.appendChild(imageEl);
-
-      const deleteBtn = document.createElement("button");
-      deleteBtn.className = "delete-btn";
-      deleteBtn.innerHTML = "×";
-      deleteBtn.type = "button";
-      deleteBtn.onclick = () => deleteImage(index);
-      card.appendChild(deleteBtn);
-
-      const sizeBadge = document.createElement("span");
-      sizeBadge.className = "size-badge";
-      sizeBadge.textContent = "1920x1920";
-      card.appendChild(sizeBadge);
-
-      container.appendChild(card);
+      card.innerHTML = `
+        <img src="${img.data}" alt="Preview ${i+1}" />
+        <button class="preview-del" type="button" onclick="deleteImage(${i})" title="Remove">×</button>
+        <span class="preview-badge">1920×1920</span>`;
+      c.appendChild(card);
     });
   }
 
-  // ---- Submit Form ----
+  // ── Submit ──
   async function submitBlog(e) {
     e.preventDefault();
-    
-    const title = document.getElementById("f-title").value.trim();
+
+    const title    = document.getElementById("f-title").value.trim();
     const category = document.getElementById("f-category").value;
-    const author = document.getElementById("f-author").value.trim();
-    const summary = document.getElementById("f-summary").value.trim();
-    const content = document.getElementById("f-content").value.trim();
+    const author   = document.getElementById("f-author").value.trim();
+    const summary  = document.getElementById("f-summary").value.trim();
+    const content  = document.getElementById("f-content").value.trim();
 
     if (!title || !category || !author || !summary || !content) {
-      showAlert("error", "Please fill in all required fields.");
+      showAlert("error", "Please fill in all required fields before publishing.");
       return;
     }
-
     if (uploadedImages.length === 0) {
-      showAlert("error", "Please upload at least one image.");
+      showAlert("error", "Please upload at least one image for the article.");
       return;
     }
 
-    if (!ADMIN_CONFIG.APPS_SCRIPT_URL || ADMIN_CONFIG.APPS_SCRIPT_URL.includes("YOUR_")) {
-      showAlert("error", "APPS_SCRIPT_URL is not set. Please deploy your Google Apps Script first.");
-      return;
-    }
-
-    const btn = document.getElementById("submit-btn");
+    const btn     = document.getElementById("submit-btn");
     const spinner = document.getElementById("submit-spinner");
-    btn.disabled = true;
-    spinner.style.display = "inline";
+    const icon    = document.getElementById("publish-icon");
 
-    const payload = {
-      title,
-      category,
-      author,
-      summary,
-      content,
-      images: uploadedImages
-    };
+    btn.disabled = true;
+    spinner.style.display = "block";
+    icon.style.display    = "none";
 
     try {
       await fetch(ADMIN_CONFIG.APPS_SCRIPT_URL, {
-        method: "POST",
-        mode: "no-cors",
+        method: "POST", mode: "no-cors",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ title, category, author, summary, content, images: uploadedImages }),
       });
-
-      showAlert("success", "✅ Blog post successfully published! Google Sheet will be updated in a moment. Refresh your main website to see it.");
+      showAlert("success", "Article published successfully! It will appear on the blog within a few seconds.");
       resetForm();
-    } catch (err) {
-      showAlert("error", "❌ Submission failed. Please check your network and Apps Script URL settings.");
+    } catch {
+      showAlert("error", "Submission failed. Please check your connection and try again.");
     } finally {
       btn.disabled = false;
       spinner.style.display = "none";
+      icon.style.display    = "block";
     }
   }
 
@@ -649,22 +744,22 @@ function doPost(e) {
     document.getElementById("blog-form").reset();
     uploadedImages = [];
     renderPreviews();
+    document.getElementById("cnt-title").textContent   = "0 / 120";
+    document.getElementById("cnt-summary").textContent = "0 / 280";
+    document.getElementById("cnt-words").textContent   = "0 words";
+    document.getElementById("read-time-info").textContent = "—";
   }
 
   function showAlert(type, msg) {
-    const el = document.getElementById("submit-alert");
-    el.className = "alert " + type;
-    el.textContent = msg;
+    const el   = document.getElementById("submit-alert");
+    const icon = document.getElementById("alert-icon");
+    const text = document.getElementById("alert-msg");
+    el.className  = `alert show alert-${type}`;
+    icon.textContent = type === "success" ? "✅" : "❌";
+    text.textContent = msg;
     el.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  }
-
-  function copyCode() {
-    const code = document.getElementById("apps-script-code").textContent;
-    navigator.clipboard.writeText(code).then(() => {
-      alert("Apps Script code copied! Paste it in Extensions -> Apps Script in Google Sheets.");
-    });
+    if (type === "success") setTimeout(() => { el.className = "alert"; }, 6000);
   }
 </script>
-
 </body>
 </html>
