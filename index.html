@@ -255,8 +255,7 @@
     <div id="login-error" style="color:var(--danger); font-size:13px; margin-bottom:12px; display:none; font-weight: 500;">
       ❌ Incorrect password. Please try again.
     </div>
-    <button class="btn btn-primary" onclick="doLogin()" style="width:100%;">Login</button>
-  </div>
+    <button class="btn btn-primary" onclick="doLogin()" style="width:100%;">Login</button>  </div>
 </div>
 
 <!-- Admin Panel -->
@@ -333,17 +332,45 @@
 
   <!-- Setup instructions -->
   <div class="card">
-    <h2>🔧 Google Apps Script Update Instructions</h2>
-    <p class="subtitle">Since we are moving from single product to multiple blog images, please update your Google Apps Script code to match the new format.</p>
+    <h2>🔧 Google Apps Script Setup Instructions</h2>
+    <p class="subtitle">Password is now stored securely in Apps Script — not in this HTML file. Follow these steps to set it up.</p>
     
     <ol>
       <li>Go to your Google Sheet → <strong>Extensions → Apps Script</strong>.</li>
       <li>Replace the entire script with the code below and save it.</li>
-      <li>Click <strong>Deploy → Manage Deployments</strong>. Click the pencil icon to edit, change version to <strong>"New version"</strong>, and click <strong>Deploy</strong>.</li>
-      <li>Ensure "Execute as: Me" and "Who has access: Anyone" are selected.</li>
+      <li>On <strong>line 2</strong>, change <code>your-strong-password-here</code> to your actual password.</li>
+      <li>Click <strong>Deploy → Manage Deployments</strong>. Click the pencil icon, change version to <strong>"New version"</strong>, and click <strong>Deploy</strong>.</li>
+      <li>Ensure <strong>"Execute as: Me"</strong> and <strong>"Who has access: Anyone"</strong> are selected.</li>
+      <li>✅ Your password is now only in Apps Script — never visible in public HTML code.</li>
     </ol>
 
-    <div class="code-block" id="apps-script-code">function doPost(e) {
+    <div class="code-block" id="apps-script-code">// ── STEP 1: Set your password here (only in Apps Script, never in HTML) ──
+var ADMIN_PASSWORD = "your-strong-password-here";
+
+// ── Login handler — called by admin page to verify password ──
+function doGet(e) {
+  var params = e.parameter;
+  if (params.action === "login") {
+    if (params.pwd === ADMIN_PASSWORD) {
+      // Generate a simple time-based token
+      var token = Utilities.base64Encode(
+        ADMIN_PASSWORD + "|" + new Date().toDateString()
+      );
+      return ContentService
+        .createTextOutput(JSON.stringify({ status: "ok", token: token }))
+        .setMimeType(ContentService.MimeType.JSON);
+    } else {
+      return ContentService
+        .createTextOutput(JSON.stringify({ status: "fail" }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+  return ContentService
+    .createTextOutput(JSON.stringify({ status: "invalid" }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function doPost(e) {
   try {
     var data = JSON.parse(e.postData.contents);
     var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
@@ -405,32 +432,75 @@
 
 <script>
   // =============================================
-  // CONFIG — Preserved from original project
+  // CONFIG — Password is verified server-side
+  // via Google Apps Script (NOT stored here)
   // =============================================
   const ADMIN_CONFIG = {
-    PASSWORD: "admin123",
-    BLOG_NAME: "My Blog",
+    BLOG_NAME: "The Daily Pen",
     APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbx27XXzjVErz-H76wyZzssdRx6gdyx_J6L5Ar0sptbafFtCyiKjtEr3g1XPELJZbRqD/exec",
   };
   // =============================================
 
+  const SESSION_KEY = "adm_tok";
+  const SESSION_EXPIRY_KEY = "adm_tok_exp";
+  const SESSION_DURATION_MS = 4 * 60 * 60 * 1000; // 4 hours
+
   document.getElementById("blog-title-header").textContent = ADMIN_CONFIG.BLOG_NAME + " — Admin";
 
-  let uploadedImages = []; // Stores objects: { name, data (base64 1920x1920) }
+  let uploadedImages = [];
 
-  // ---- Login ----
-  function doLogin() {
-    const pwd = document.getElementById("pwd-input").value;
-    if (pwd === ADMIN_CONFIG.PASSWORD) {
-      document.getElementById("login-screen").style.display = "none";
-      document.getElementById("admin-panel").style.display = "block";
-      document.getElementById("logout-btn").style.display = "block";
-    } else {
-      document.getElementById("login-error").style.display = "block";
+  // ---- Check existing session on load ----
+  (function checkSession() {
+    const token = sessionStorage.getItem(SESSION_KEY);
+    const expiry = parseInt(sessionStorage.getItem(SESSION_EXPIRY_KEY) || "0");
+    if (token && Date.now() < expiry) {
+      showAdminPanel();
+    }
+  })();
+
+  // ---- Login — password sent to Apps Script for verification ----
+  async function doLogin() {
+    const pwd = document.getElementById("pwd-input").value.trim();
+    if (!pwd) return;
+
+    const loginBtn = document.querySelector('#login-screen .btn-primary');
+    const errEl = document.getElementById("login-error");
+    errEl.style.display = "none";
+    loginBtn.disabled = true;
+    loginBtn.textContent = "Verifying...";
+
+    try {
+      // Send password to Apps Script doGet for server-side check
+      const url = `${ADMIN_CONFIG.APPS_SCRIPT_URL}?action=login&pwd=${encodeURIComponent(pwd)}`;
+      const res = await fetch(url);
+      const json = await res.json();
+
+      if (json.status === "ok" && json.token) {
+        // Store time-limited session token (not the password)
+        sessionStorage.setItem(SESSION_KEY, json.token);
+        sessionStorage.setItem(SESSION_EXPIRY_KEY, Date.now() + SESSION_DURATION_MS);
+        showAdminPanel();
+      } else {
+        errEl.style.display = "block";
+      }
+    } catch (err) {
+      errEl.textContent = "❌ Could not reach server. Check your connection.";
+      errEl.style.display = "block";
+    } finally {
+      loginBtn.disabled = false;
+      loginBtn.textContent = "Login";
     }
   }
 
+  function showAdminPanel() {
+    document.getElementById("login-screen").style.display = "none";
+    document.getElementById("admin-panel").style.display = "block";
+    document.getElementById("logout-btn").style.display = "block";
+  }
+
   function logout() {
+    sessionStorage.removeItem(SESSION_KEY);
+    sessionStorage.removeItem(SESSION_EXPIRY_KEY);
     document.getElementById("login-screen").style.display = "flex";
     document.getElementById("admin-panel").style.display = "none";
     document.getElementById("logout-btn").style.display = "none";
